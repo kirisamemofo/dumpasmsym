@@ -50,16 +50,16 @@ static std::string ReadInputString(std::ifstream& input)
 
 bool Symbols::LoadPsyqSymbols(const std::string& file_name)
 {
-	std::ifstream input(file_name, std::ios::in | std::ios::binary);
+	std::ifstream input(file_name, std::ios::binary);
 	if (!input.is_open()) {
 		throw std::runtime_error(("Cannot open \"" + file_name + "\" for reading.").c_str());
 	}
 
-	input.seekg(0, std::ios::end);
+	input.seekg(0, input.end);
 	if (input.tellg() == 0) {
 		return false;
 	}
-	input.seekg(0, std::ios::beg);
+	input.seekg(0, input.beg);
 
 	char read_buffer[4];
 	ReadInput(input, read_buffer, 3);
@@ -74,7 +74,7 @@ bool Symbols::LoadPsyqSymbols(const std::string& file_name)
 		return false;
 	}
 
-	input.seekg(8, std::ios_base::beg);
+	input.seekg(8, input.beg);
 
 	while (true) {
 		if (input.peek() == -1) {
@@ -82,14 +82,16 @@ bool Symbols::LoadPsyqSymbols(const std::string& file_name)
 		}
 
 		long long value = ReadInputNumber(input, true);
-
 		char type;
 		ReadInput(input, &type, 1);
 
-		std::string name = ReadInputString(input);
-
-		if (type == 1 || type == 2) {
-			this->AddSymbol(name, value);
+		if (type == 8) {
+			input.seekg(1, input.cur);
+		} else {
+			std::string name = ReadInputString(input);
+			if (type == 1 || type == 2) {
+				this->AddSymbol(name, value);
+			}
 		}
 	}
 
